@@ -175,6 +175,12 @@ function Install-Grafana([string] $zipfile) {
             [string] $rootfolder = Split-Path $installfolder
             Log "Moving folder: '$subfolder' -> '$rootfolder'"
             move $subfolder $rootfolder
+
+            [string] $binfolder = Path-Combine $installfolder "bin"
+            Log "Updating plugins from: '$binfolder'"
+            pushd $binfolder
+            .\grafana-cli plugins update-all
+            popd
         }
         finally {
             Log "Starting service: '$serviceName'"
