@@ -67,23 +67,18 @@ function Get-DownloadUrl() {
 
     for ([int] $i = 0; $i -lt $rows.Count; $i++) {
         [string] $row = $rows[$i]
-        if ($row.Contains("fast lane")) {
-            for ([int] $j = $i - 1; $j -ge 0; $j--) {
-                if ($rows[$j].Contains("<a href=")) {
-                    [int] $firstQuote = $rows[$j].IndexOf("`"")
-                    [int] $secondQuote = $rows[$j].IndexOf("`"", $firstQuote + 1)
+        [int] $msi = $row.IndexOf(".msi")
+        if ($msi -ge 0) {
+            [int] $semi = $row.LastIndexOf(";", $msi)
+            if ($semi -ge 0)
+            {
+                [string] $filename = $row.Substring($semi + 1, $msi - $semi + 3)
+                Log "Got filename: '$filename'"
 
-                    [string] $url = $rows[$j].Substring($firstQuote + 1, $secondQuote - $firstQuote - 1)
-                    Log "Got url: '$url'"
+                [string] $downloadLink = "https://download.octopusdeploy.com/octopus/" + $filename
+                Log "Got download link: '$downloadLink'"
 
-                    [int] $lastSlash = $url.LastIndexOf("/")
-                    [string] $version = $url.Substring($lastSlash + 1)
-
-                    [string] $downloadLink = "https://download.octopusdeploy.com/octopus/Octopus." + $version + "-x64.msi"
-                    Log "Got download link: '$downloadLink'"
-
-                    return $downloadLink
-                }
+                return $downloadLink
             }
         }
     }
