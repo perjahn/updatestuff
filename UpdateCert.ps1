@@ -4,7 +4,10 @@ $ErrorActionPreference = "Stop"
 # Re-encrypt EncryptedClientSecret using the following command:
 # Read-Host | ConvertTo-SecureString -AsPlainText -Force | ConvertFrom-SecureString
 
-Start-Transcript -Path "UpdateCert_transcript.log" -Append
+[string] $transcriptfile = Join-Path (pwd).Path "UpdateCert_transcript.log"
+[string] $logfile = Join-Path (pwd).Path "UpdateCert.log"
+
+Start-Transcript -Path $transcriptfile -Append
 
 function Main() {
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -21,11 +24,12 @@ function Main() {
     Open-Firewall $firewallInfo
 
     try {
-        cd $folder
+        pushd $folder
         Log "Updating cert..."
         .\wacs --renew
     }
     finally {
+        popd
         Close-Firewall $firewallInfo
     }
 
@@ -120,7 +124,7 @@ function Extract-Wacs([string] $filename) {
 }
 
 function Log([string] $message, $color) {
-    ([DateTime]::UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + ": " + $message) | Add-Content "UpdateCert.log"
+    ([DateTime]::UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + ": " + $message) | Add-Content $logfile
 
     if ($color) {
         Write-Host $message -f $color
